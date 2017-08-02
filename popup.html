@@ -7,11 +7,6 @@
         <link rel="stylesheet" href="styles/popup.css">
     </head>
     <body>
-        <menu type="context" id="maincontext">
-            <menuitem id="markAsRead" accesskey="M A R" data-l10n-id="markAsRead" data-l10n-attrs="accesskey">Mark as read</menuitem>
-            <menuitem id="unsubscribe" accesskey="U W" data-l10n-id="unwatch" data-l10n-attrs="accesskey">Unsubscribe</menuitem>
-            <menuitem id="ignore" accesskey="I G" data-l10n-id="ignore" data-l10n-attrs="accesskey">Ignore</menuitem>
-        </menu>
         <main class="panel">
             <div class="panel-section panel-section-list">
                 <div id="empty">
@@ -22,7 +17,7 @@
                     <div class="panel-section-separator"></div>
                 </div>
 
-                <ul id="notifications" hidden contextmenu="maincontext"></ul>
+                <ul id="notifications" hidden></ul>
                 <div class="panel-list-item disabled" id="mark-read">
                     <div class="icon"></div>
                     <span class="text" id="mark-read-text" data-l10n-id="markAllRead">Mark all as read</span>

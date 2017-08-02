@@ -196,6 +196,71 @@ const clearToken = () => {
     }).then(() => needsAuth());
 };
 
+const contextMenu = {
+    target: undefined,
+    documentUrlPatterns: [ browser.runtime.getURL('popup.html') ],
+    ids: [
+        'mark-read',
+        'unsubscribe',
+        'ignore'
+    ],
+    addContextMenuItem(id, title) {
+        browser.contextMenus.create({
+            id,
+            contexts: [ 'all' ],
+            type: 'normal',
+            title,
+            documentUrlPatterns: this.documentUrlPatterns
+        });
+    },
+    showItems() {
+        this.addContextMenuItem(this.ids[0], browser.i18n.getMessage('markAsRead'));
+        this.addContextMenuItem(this.ids[1], browser.i18n.getMessage('unwatch'));
+        this.addContextMenuItem(this.ids[2], browser.i18n.getMessage('ignore'));
+    },
+    hideItems() {
+        browser.contextMenus.removeAll();
+    },
+    openFor(notificationId) {
+        this.target = notificationId;
+        if(!notificationId) {
+            this.hideItems();
+        }
+        else {
+            this.showItems();
+        }
+    },
+    markNotificationRead() {
+        return github.markNotificationRead(this.target).then(() => {
+            return markNotificationAsRead(this.target);
+        });
+    },
+    unsubscribe() {
+        return github.unsubscribeNotification(this.target);
+    },
+    ignore() {
+        return github.ignoreNotification(message.notificationId);
+    },
+    onClicked({ menuItemId }) {
+        switch(menuItemId) {
+        case this.ids[0]:
+            this.markNotificationRead();
+            break;
+        case this.ids[1]:
+            this.unsubscribe();
+            break;
+        case this.ids[2]:
+            this.ignore();
+            break;
+        default:
+        }
+    },
+    init() {
+        browser.contextMenus.onClicked.addListener((e) => this.onClicked);
+    }
+};
+contextMenu.init();
+
 browser.runtime.onMessage.addListener((message) => {
     switch(message.topic) {
         case "open-notification":
@@ -221,23 +286,18 @@ browser.runtime.onMessage.addListener((message) => {
                 }
             }).catch((e) => console.error(e));
             break;
-        case "mark-notification-read":
-            github.markNotificationRead(message.notificationId).then(() => {
-                return markNotificationAsRead(message.notificationId);
-            }).catch((e) => console.error(e));
-            break;
-        case "unsubscribe-notification":
-            github.unsubscribeNotification(message.notificationId).catch(console.error);
-            break;
-        case "ignore-notification":
-            github.ignoreNotification(message.notificationId).catch(console.error);
-            break;
         case "logout":
             browser.storage.local.get("token").then(({ token }) => {
                 return github.authorize(token, "DELETE");
             }).then((response) => {
                 return clearToken();
             }).catch((e) => console.error(e));
+            break;
+        case "contextmenu-target":
+            contextMenu.openFor(message.notificationId);
+            break;
+        case "contextmenu-miss":
+            contextMenu.openFor();
             break;
         default:
     }

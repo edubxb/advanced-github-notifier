@@ -23,7 +23,8 @@
         "notifications",
         "alarms",
         "storage",
-        "https://github.com/login/oauth/access_token"
+        "https://github.com/login/oauth/access_token",
+        "contextMenus"
     ],
     "version": "1.2.0",
     "icons": {

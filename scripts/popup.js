@@ -21,40 +21,11 @@ const clickListener = (id) => {
     window.close();
 };
 
-const contextMenu = {
-    target: null,
-    init() {
-        this.addListener("markAsRead", "markAsRead");
-        this.addListener("unsubscribe", "unsubscribe");
-        this.addListener("ignore", "ignore");
-    },
-    addListener(id, listenerName) {
-        document.getElementById(id).addEventListener("click", () => this[listenerName](), {
-            capture: false,
-            passive: true
-        });
-    },
-    openFor(notificationId) {
-        this.target = notificationId;
-    },
-    markAsRead() {
-        browser.runtime.sendMessage({
-            topic: "mark-notification-read",
-            notificationId: this.target
-        });
-    },
-    unsubscribe() {
-        browser.runtime.sendMessage({
-            topic: "unsubscribe-notification",
-            notificationId: this.target
-        });
-    },
-    ignore() {
-        browser.runtime.sendMessage({
-            topic: "ignore-notification",
-            notificationId: this.target
-        });
-    }
+const openFor = (notificationId) => {
+    browser.runtime.sendMessage({
+        topic: "contextmenu-target",
+        notificationId
+    });
 };
 
 const createNotification = (notification) => {
@@ -91,7 +62,13 @@ const createNotification = (notification) => {
 
     root.append(image, title, repo);
     root.addEventListener("click", clickListener.bind(null, notification.id));
-    root.addEventListener("contextmenu", () => contextMenu.openFor(notification.id));
+    root.addEventListener("contextmenu", (e) => {
+        e.stopPropagation();
+        openFor(notification.id)
+    }, {
+        capture: false,
+        passive: false
+    });
     const parent = document.getElementById("notifications");
     parent.append(root);
     parent.hidden = false;
@@ -159,7 +136,14 @@ loaded.then(() => {
         passive: true
     });
 
-    contextMenu.init();
+    document.addEventListener("contextmenu", () => {
+        browser.runtime.sendMessage({
+            topic: 'contextmenu-miss'
+        });
+    }, {
+        capture: false,
+        passive: true
+    });
 });
 
 Promise.all([
