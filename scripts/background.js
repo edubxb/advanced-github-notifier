@@ -239,7 +239,7 @@ const contextMenu = {
         return github.unsubscribeNotification(this.target);
     },
     ignore() {
-        return github.ignoreNotification(message.notificationId);
+        return github.ignoreNotification(this.target);
     },
     onClicked({ menuItemId }) {
         switch(menuItemId) {
